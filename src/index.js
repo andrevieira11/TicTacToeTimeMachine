@@ -5,7 +5,7 @@ import './index.css';
 function Square(props) {
   return (
     <button 
-      className="square"
+      className={props.winningSquare ? "filledSquare" : "square"}
       onClick={props.onClick}
     >
       {props.value}
@@ -15,11 +15,10 @@ function Square(props) {
   
 class Board extends React.Component {
   renderSquare(i) {
-    console.log(this.props.positions);
     return <Square
       value={this.props.squares[i]}
       onClick={() => this.props.onClick(i)}
-      className={ (i == this.props.positions[0]) || (i == this.props.positions[1]) || (i == this.props.positions[2]) ? 'filledSquare' : ''}
+      winningSquare={ (i === this.props.positions[0]) || (i === this.props.positions[1]) || (i === this.props.positions[2]) ? true : false}
     />;
   }
 
@@ -50,6 +49,7 @@ class Game extends React.Component {
       stepNumber: 0,
       lastPlaced: [],
       xIsNext: true,
+      descending: true,
     };
   }
 
@@ -78,6 +78,10 @@ class Game extends React.Component {
     });
   }
 
+  toggleOrder() {
+    this.setState({descending: !this.state.descending})
+  }
+
   render() {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
@@ -87,7 +91,6 @@ class Game extends React.Component {
       const desc = move ?
       'Go to move: ' + (move%2 === 0 ? 'O' : 'X') + ' on (' + (this.state.lastPlaced[move-1]%3 + 1) + ', ' + (Math.trunc(this.state.lastPlaced[move - 1]/3) + 1) + ')':
       'Go to game start';
-      
       return (
         <li key={move}>
           <button onClick={() => this.jumpTo(move)}
@@ -98,7 +101,7 @@ class Game extends React.Component {
 
     let status;
     if(winner) {
-      status = 'Winner: ' + winner;
+      status = 'Winner: ' + current.squares[winner[0]];
     } else {
       if(this.state.stepNumber >= 9){
         status = 'Game is tied!'
@@ -118,7 +121,8 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{status}</div>
-          <ol>{moves}</ol>
+          <ol>{this.state.descending ? moves : moves.reverse()}</ol>
+          <button onClick={() => this.toggleOrder()}>Toggle moves order</button>
         </div>
       </div>
     );
